@@ -6,11 +6,11 @@ apply plugin: 'kotlin-kapt'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.example.in_app_updates_sample"
+        applicationId "com.thettunaung.inappupdatetest"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        versionCode 15
+        versionName "2.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -24,6 +24,29 @@ android {
             includeAndroidResources = true
         }
     }
+    signingConfigs {
+        release {
+            storeFile file("inapptest.jks")
+            storePassword "test774"
+            keyAlias "test"
+            keyPassword "test774"
+        }
+        debug {
+            storeFile file("inapptest.jks")
+            storePassword "test774"
+            keyAlias "test"
+            keyPassword "test774"
+        }
+    }
+
+    bundle {
+        abi {
+            enableSplit = true
+        }
+        language {
+            enableSplit = false
+        }
+    }
 }
 
 dependencies {
@@ -34,7 +57,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.core:core-ktx:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'com.google.android.play:core:1.6.4'
+    implementation 'com.google.android.play:core:1.7.3'
     implementation 'com.google.android.material:material:1.0.0'
 
     implementation 'com.google.dagger:dagger:2.25.2'
