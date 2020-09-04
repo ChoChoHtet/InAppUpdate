@@ -2,6 +2,7 @@ package com.example.in_app_updates_sample
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -17,6 +18,7 @@ import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.android.play.core.tasks.OnSuccessListener
 import dagger.android.AndroidInjection
+import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.Executor
 import javax.inject.Inject
 
@@ -40,6 +42,9 @@ class MainActivity : AppCompatActivity(),InstallStateUpdatedListener {
         super.onCreate(savedInstanceState)
         AndroidInjection.inject(this)
         setContentView(R.layout.activity_main)
+        btnShow.setOnClickListener {
+            startActivity(Intent(this,MyRouteActivity::class.java))
+        }
 
         updateChecker()
     }
@@ -60,35 +65,43 @@ class MainActivity : AppCompatActivity(),InstallStateUpdatedListener {
 
         super.onResume()
 
-        appUpdateManager.appUpdateInfo.addOnSuccessListener(playServiceExecutor, OnSuccessListener { appUpdateInfo ->
-            if (appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
-                // If the update is downloaded but not installed,
-                // notify the user to complete the update.
-                if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED)
-                    updaterDownloadCompleted()
-            } else {
-                // for AppUpdateType.IMMEDIATE only
-                // already executing updater
-                if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-//                    appUpdateManager.startUpdateFlowForResult(
-//                        appUpdateInfo,
-//                        AppUpdateType.IMMEDIATE,
-//                        this,
-//                        REQUEST_UPDATE_CODE
-//                    )
-                    customDialog()
-                }
-            }
-        })
+//        appUpdateManager.appUpdateInfo.addOnSuccessListener(playServiceExecutor, OnSuccessListener { appUpdateInfo ->
+//            if (appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
+//                // If the update is downloaded but not installed,
+//                // notify the user to complete the update.
+//                if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED)
+//                    updaterDownloadCompleted()
+//            } else {
+//                // for AppUpdateType.IMMEDIATE only
+//                // already executing updater
+//                if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+////                    appUpdateManager.startUpdateFlowForResult(
+////                        appUpdateInfo,
+////                        AppUpdateType.IMMEDIATE,
+////                        this,
+////                        REQUEST_UPDATE_CODE
+////                    )
+//                    customDialog()
+//                    Toast.makeText(this,"updateAvailability = " + appUpdateInfo.updateAvailability(),Toast.LENGTH_LONG).show()
+//                }
+//                Toast.makeText(this,"updateAvailability = " + appUpdateInfo.updateAvailability(),Toast.LENGTH_LONG).show()
+//            }
+//        })
     }
     private fun customDialog(){
        AlertDialog.Builder(this)
             .setTitle("New DMS Update is available")
             .setMessage("New Version")
-            .setPositiveButton("UPdate",DialogInterface.OnClickListener { dialog, which ->
+            .setPositiveButton("Update",DialogInterface.OnClickListener { dialog, which ->
                 //https://play.google.com/store/apps/details?id=io.haulio.thailand.dms.prod&hl=en
                 dialog.dismiss()
                 Toast.makeText(this,"Downloading.....",Toast.LENGTH_LONG).show()
+                val intent=Intent(Intent.ACTION_VIEW)
+                    .apply {
+                        setPackage("com.android.vending")
+                        data= Uri.parse("https://play.google.com/store/apps/details?id=io.haulio.thailand.dms.prod&hl=en")
+                    }
+                startActivity(intent)
             })
             .setNegativeButton("Cancel",DialogInterface.OnClickListener { dialog, which ->
                 dialog.dismiss()
@@ -124,19 +137,25 @@ class MainActivity : AppCompatActivity(),InstallStateUpdatedListener {
         appUpdateInfoTask.addOnSuccessListener(playServiceExecutor, OnSuccessListener { appUpdateInfo ->
             when (appUpdateInfo.updateAvailability()) {
                 UpdateAvailability.UPDATE_AVAILABLE -> {
-                    val updateTypes = arrayOf(AppUpdateType.FLEXIBLE, AppUpdateType.IMMEDIATE)
-                    run loop@{
-                        updateTypes.forEach { type ->
-                            if (appUpdateInfo.isUpdateTypeAllowed(type)) {
-                                customDialog()
-                                //appUpdateManager.startUpdateFlowForResult(appUpdateInfo, type, this, REQUEST_UPDATE_CODE)
-                                return@loop
-                            }
-                        }
-                    }
+                    Log.d(TAG,"Update Status = " + appUpdateInfo.updateAvailability())
+                    //appUpdateInfo.updatePriority()
+                    appUpdateInfo.updatePriority()
+                    customDialog()
+//                    val updateTypes = arrayOf(AppUpdateType.FLEXIBLE, AppUpdateType.IMMEDIATE)
+//                    run loop@{
+//                        updateTypes.forEach { type ->
+//                            if (appUpdateInfo.isUpdateTypeAllowed(type)) {
+//                                Toast.makeText(this,"Update Status = " + appUpdateInfo.updateAvailability(),Toast.LENGTH_LONG).show()
+//                                customDialog()
+//                                //appUpdateManager.startUpdateFlowForResult(appUpdateInfo, type, this, REQUEST_UPDATE_CODE)
+//                                return@loop
+//                            }
+//                        }
+//                    }
                 }
                 else -> {
                     Log.d(TAG, "updateAvailability = " + appUpdateInfo.updateAvailability())
+                    Toast.makeText(this,"updateAvailability = " + appUpdateInfo.updateAvailability(),Toast.LENGTH_LONG).show()
                 }
             }
         })
